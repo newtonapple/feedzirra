@@ -166,9 +166,10 @@ module Feedzirra
     # === Parameters
     # [feeds<Feed> or <Array>] A single feed object, or an array of feed objects.
     # [options<Hash>] Valid keys for this argument as as followed:
-    #                 * :user_agent - String that overrides the default user agent.
-    #                 * :on_success - Block that gets executed after a successful request.
-    #                 * :on_failure - Block that gets executed after a failed request.
+    #                 * :user_agent   - String that overrides the default user agent.
+    #                 * :on_success   - Block that gets executed after a successful request.
+    #                 * :on_failure   - Block that gets executed after a failed request.
+    #                 * :on_excpetion - Block that gets executed after a thrown exception.
     # === Returns
     # A updated Feed object if a single URL is passed.
     #
@@ -195,9 +196,10 @@ module Feedzirra
     # [responses<Hash>] Existing responses that you want the response from the request added to.
     # [feeds<String> or <Array>] A single feed object, or an array of feed objects.
     # [options<Hash>] Valid keys for this argument as as followed:
-    #                 * :user_agent - String that overrides the default user agent.
-    #                 * :on_success - Block that gets executed after a successful request.
-    #                 * :on_failure - Block that gets executed after a failed request.
+    #                 * :user_agent   - String that overrides the default user agent.
+    #                 * :on_success   - Block that gets executed after a successful request.
+    #                 * :on_failure   - Block that gets executed after a failed request.
+    #                 * :on_excpetion - Block that gets executed after a thrown exception .
     # === Returns
     # The updated Curl::Multi object with the request details added to it's stack.
     def self.add_url_to_multi(multi, url, url_queue, responses, options)
@@ -226,7 +228,7 @@ module Feedzirra
               responses[url] = feed
               options[:on_success].call(url, feed) if options.has_key?(:on_success)
             rescue Exception => e
-              options[:on_failure].call(url, c.response_code, c.header_str, c.body_str) if options.has_key?(:on_failure)
+              options[:on_exception].call(e, url, c) if options.has_key?(:on_exception)
             end
           else
             # puts "Error determining parser for #{url} - #{c.last_effective_url}"
@@ -280,7 +282,7 @@ module Feedzirra
             responses[feed.feed_url] = feed
             options[:on_success].call(feed) if options.has_key?(:on_success)
           rescue Exception => e
-            options[:on_failure].call(feed, c.response_code, c.header_str, c.body_str) if options.has_key?(:on_failure)
+            options[:on_exception].call(e, feed, c) if options.has_key?(:on_exception)
           end
         end
 
